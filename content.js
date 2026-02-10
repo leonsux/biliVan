@@ -12,7 +12,7 @@ function enforceDiscipline() {
   // 通常B站的视频标签没有特定的ID，所以我们抓取第一个出现的video标签。
   const videoElement = document.querySelector("video");
   
-  if (videoElement && !hasResetDone) {
+  if (videoElement && !hasResetDone && videoElement.duration > 0) {
     videoElement.muted = true;
   }
 
