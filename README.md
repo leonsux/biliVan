@@ -1,4 +1,4 @@
-# Van's Bilibili Rewind: The Deep Dark Reset Protocol
+# BiliVan: The Deep Dark Reset Protocol
 # 范·達克霍姆的B站重置协议
 
 > "Ah shit, here we go again." —— 当你试图恢复播放进度时，这个插件会对你说。
