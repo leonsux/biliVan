@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Van's Bilibili Rewind: The Fresh Start",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Ah shit, here we go again. 强制B站视频从头播放，保持纪律性。",
   "permissions": ["tabs"],
   "content_scripts": [
     {
       "matches": [
         "*://www.bilibili.com/video/*",
+        "*://www.bilibili.com/list/*",
         "*://www.bilibili.com/bangumi/play/*"
       ],
       "js": ["content.js"],
