@@ -1,64 +1,39 @@
-// Van Darkholme's script execution realm.
-// 我们在这里维持秩序。
+(function () {
+  // 标记位：每一段新视频开始时，我们需要拦截第一次“非零”的进度设置
+  let needsReset = true;
+  let lastUrl = location.href;
 
-console.log("Van is watching this dungeon. 准备重置进度...");
+  // 监听 URL 变化（针对单页应用换 P）
+  setInterval(() => {
+    if (location.href !== lastUrl) {
+      lastUrl = location.href;
+      needsReset = true; // 换视频了，开启下一轮拦截
+    }
+  }, 500);
 
-let currentUrl = location.href;
-let hasResetDone = false;
+  // 核心逻辑：劫持 HTMLMediaElement 的 currentTime 属性
+  const originalGetter = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'currentTime').get;
+  const originalSetter = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'currentTime').set;
 
-// 这个函数是执行核心任务的“鞭子”
-function enforceDiscipline() {
-  // 寻找视频标签。在B站的HTML海洋里找到那个<video>。
-  // 通常B站的视频标签没有特定的ID，所以我们抓取第一个出现的video标签。
-  const videoElement = document.querySelector("video");
+  Object.defineProperty(HTMLMediaElement.prototype, 'currentTime', {
+    get: function () {
+      return originalGetter.call(this);
+    },
+    set: function (newValue) {
+      // 如果满足以下条件，我们就认为这是 B 站自动跳转历史进度的行为：
+      // 1. 这是一个新视频 (needsReset 为 true)
+      // 2. 跳转的目标时间大于 0
+      if (needsReset && newValue > 0) {
+        console.log(`[拦截成功] B站尝试跳转到 ${newValue}s，已强制重置为 0s`);
+        newValue = 0;
+        needsReset = false; // 只拦截第一次自动跳转，不影响用户手动拉进度条
+      }
 
-  // 由于网络延迟+页面渲染，进度大于500的才认为是看过的视频
-  const isOldVideo = videoElement.duration > 500;
-  
-  if (videoElement && !hasResetDone && isOldVideo) {
-    videoElement.muted = true;
-  }
+      // 执行真正的设置进度操作
+      originalSetter.call(this, newValue);
+    },
+    configurable: true
+  });
 
-  // 检查视频是否存在，以及它是否已经加载了元数据（知道自己的长度）
-  // 如果我们还没有在这个URL上执行过重置，那就动手。
-  if (videoElement && isOldVideo && !hasResetDone && !videoElement.paused) {
-    console.log("Ah, I see you. 重置时间轴到 00:00。DO IT NOW.");
-
-    videoElement.muted = false;
-
-    videoElement.pause();
-    // 核心动作：将当前时间设置为0
-    videoElement.currentTime = 0;
-    setTimeout(() => {
-      videoElement.play();
-    }, 10);
-
-    // 标记任务完成，防止它像个疯子一样不停地重置
-    hasResetDone = true;
-
-    // 可选：如果你希望重置后立刻暂停，取消下面这行的注释
-    // videoElement.pause();
-  }
-}
-
-// 启动一个定时器，每秒钟检查一次地牢的状态。
-// 这比复杂的事件监听更简单粗暴，也更有效，因为B站的加载机制很复杂。
-setInterval(() => {
-  // 检查我们是否进入了一个新的房间（URL是否改变）
-  if (location.href !== currentUrl) {
-    console.log("检测到新的 URL。准备新的仪式。");
-    currentUrl = location.href;
-    // 新视频，重置标记位，准备再次出击
-    hasResetDone = false;
-  }
-
-  // 只有当我们身处视频播放页时，才执行纪律检查
-  if (
-    window.location.hostname === "www.bilibili.com" &&
-    (window.location.pathname.includes("/video/") ||
-      window.location.pathname.includes("/bangumi/play/") ||
-      window.location.pathname.includes("/list/"))
-  ) {
-    enforceDiscipline();
-  }
-}, 1000); // 1000毫秒（1秒）检查一次，这频率刚刚好，既保持压力又不至于让浏览器崩溃。
+  console.log("Ah, I see you. 重置时间轴到 00:00。DO IT NOW.");
+})();

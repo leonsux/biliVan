@@ -12,7 +12,8 @@
         "*://www.bilibili.com/bangumi/play/*"
       ],
       "js": ["content.js"],
-      "run_at": "document_end"
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ]
 }
