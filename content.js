@@ -15,13 +15,13 @@ function enforceDiscipline() {
   // 由于网络延迟+页面渲染，进度大于500的才认为是看过的视频
   const isOldVideo = videoElement.duration > 500;
   
-  if (videoElement && !hasResetDone && isNewVideo) {
+  if (videoElement && !hasResetDone && isOldVideo) {
     videoElement.muted = true;
   }
 
   // 检查视频是否存在，以及它是否已经加载了元数据（知道自己的长度）
   // 如果我们还没有在这个URL上执行过重置，那就动手。
-  if (videoElement && isNewVideo && !hasResetDone && !videoElement.paused) {
+  if (videoElement && isOldVideo && !hasResetDone && !videoElement.paused) {
     console.log("Ah, I see you. 重置时间轴到 00:00。DO IT NOW.");
 
     videoElement.muted = false;
